@@ -9,7 +9,7 @@ class Process
     const ACTION_WRITE = 'WRITE';
     const NEXT_STAGES = 'next';
 
-	private $stages;
+    private $stages;
     private $conditions;
 
     /**
@@ -17,10 +17,10 @@ class Process
      * @param array $conditions
      */
     public function __construct(array $stages, array $conditions)
-	{
-		$this->stages = $stages;
+    {
+        $this->stages = $stages;
         $this->conditions = $conditions;
-	}
+    }
 
     /**
      * @param $current
@@ -36,7 +36,7 @@ class Process
      * @param array $roles
      * @return bool
      */
-    public function allowsToRead($stage, array $roles)
+    public function allowsRead($stage, array $roles)
     {
         $intersect = array_intersect($this->getAllowedRoles($stage, self::ACTION_READ), $roles);
 
@@ -48,7 +48,7 @@ class Process
      * @param array $roles
      * @return bool
      */
-    public function allowsToWrite($stage, array $roles)
+    public function allowsWrite($stage, array $roles)
     {
         $intersect = array_intersect($this->getAllowedRoles($stage, self::ACTION_WRITE), $roles);
 
