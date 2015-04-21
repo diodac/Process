@@ -39,43 +39,43 @@ class Process
 
     /**
      * @param string $stage
-     * @param array $permissions
+     * @param array $params
      * @param $obj
      * @return bool
      */
-    public function allowsRead($stage, array $permissions = null, $obj = null)
+    public function allowsRead($stage, array $params = [], $obj = null)
     {
         if (!isset($this->stages[$stage])) {
             throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $stage));
         }
         $conditions = $this->getConditionsForAction($stage, self::ACTION_READ);
-        return $this->conditionsAllow($conditions, $permissions, $obj);
+        return $this->conditionsAllow($conditions, $params, $obj);
     }
 
     /**
      * @param string $stage
-     * @param string array $permissions
+     * @param array $params
      * @param $obj
      * @return bool
      */
-    public function allowsWrite($stage, array $permissions = null, $obj = null)
+    public function allowsWrite($stage, array $params = [], $obj = null)
     {
         if (!isset($this->stages[$stage])) {
             throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $stage));
         }
         $conditions = $this->getConditionsForAction($stage, self::ACTION_WRITE);
-        return $this->conditionsAllow($conditions, $permissions, $obj);
+        return $this->conditionsAllow($conditions, $params, $obj);
     }
 
     /**
      * @param string $from
      * @param string $to
-     * @param array $permissions
+     * @param array $params
      * @param null $obj
      * @return bool
      */
-    public function allowsMoveTo($from, $to, array $permissions = null, $obj = null) {
-        if ($this->stageIsNext($from, $to) && $this->conditionsAllow($this->getConditionsForMove($from, $to), $permissions, $obj)) {
+    public function allowsMoveTo($from, $to, array $params = [], $obj = null) {
+        if ($this->stageIsNext($from, $to) && $this->conditionsAllow($this->getConditionsForMove($from, $to), $params, $obj)) {
             return true;
         } else {
             return false;
@@ -128,9 +128,9 @@ class Process
         return [];
     }
 
-    private function conditionsAllow(array $conditions, array $permissions = null, $obj = null) {
-        $objections = array_filter($conditions, function(Condition $cond) use ($permissions, $obj) {
-            return !$cond->isMet($permissions, $obj);
+    private function conditionsAllow(array $conditions, array $params = null, $obj = null) {
+        $objections = array_filter($conditions, function(Condition $cond) use ($params, $obj) {
+            return !$cond->isMet($params, $obj);
         });
 
         return empty($objections);

@@ -47,7 +47,7 @@ $stages = [
 $app->set('verification_process', new Process($stages, $conditions));
 
 //later in app
-if (!$this->verificationProcess->allowsWrite($proposal->getCurrentStage(), $user->getRoles())) {
+if (!$this->verificationProcess->allowsWrite($proposal->getCurrentStage(), ['permissions' => $user->getRoles()])) {
     throw new HttpException(403);
 }
 

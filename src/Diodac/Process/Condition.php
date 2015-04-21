@@ -11,5 +11,5 @@ namespace Diodac\Process;
 
 interface Condition
 {
-    function isMet(array $roles, $obj);
+    function isMet(array $params = [], $obj = null);
 }
