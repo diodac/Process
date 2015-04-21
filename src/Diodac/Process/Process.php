@@ -7,82 +7,148 @@ class Process
 {
     const ACTION_READ = 'READ';
     const ACTION_WRITE = 'WRITE';
-    const NEXT_STAGES = 'next';
+    const CONFIG_NEXT_STAGES = 'next';
 
     private $stages;
-    private $conditions;
 
     /**
      * @param array $stages
-     * @param array $conditions
      */
-    public function __construct(array $stages, array $conditions)
+    public function __construct(array $stages)
     {
         $this->stages = $stages;
-        $this->conditions = $conditions;
     }
 
     /**
-     * @param $current
+     * @param string $current
      * @return array
      */
     public function getNextStages($current)
     {
-        return isset($this->stages[$current][self::NEXT_STAGES]) ? $this->stages[$current][self::NEXT_STAGES] : [];
+        if (!isset($this->stages[$current])) {
+            throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $current));
+        }
+        $stages = [];
+        if (!empty($this->stages[$current][self::CONFIG_NEXT_STAGES])) {
+            foreach ((array)$this->stages[$current][self::CONFIG_NEXT_STAGES] as $k => $v) {
+                $stages[] = is_numeric($k) ? $v : $k;
+            }
+        }
+        return $stages;
     }
 
     /**
-     * @param $stage
-     * @param array $roles
+     * @param string $stage
+     * @param array $permissions
+     * @param $obj
      * @return bool
      */
-    public function allowsRead($stage, array $roles)
+    public function allowsRead($stage, array $permissions = null, $obj = null)
     {
-        $intersect = array_intersect($this->getAllowedRoles($stage, self::ACTION_READ), $roles);
-
-        return !empty($intersect);
+        if (!isset($this->stages[$stage])) {
+            throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $stage));
+        }
+        $conditions = $this->getConditionsForAction($stage, self::ACTION_READ);
+        return $this->conditionsAllow($conditions, $permissions, $obj);
     }
 
     /**
-     * @param $stage
-     * @param array $roles
+     * @param string $stage
+     * @param string array $permissions
+     * @param $obj
      * @return bool
      */
-    public function allowsWrite($stage, array $roles)
+    public function allowsWrite($stage, array $permissions = null, $obj = null)
     {
-        $intersect = array_intersect($this->getAllowedRoles($stage, self::ACTION_WRITE), $roles);
-
-        return !empty($intersect);
+        if (!isset($this->stages[$stage])) {
+            throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $stage));
+        }
+        $conditions = $this->getConditionsForAction($stage, self::ACTION_WRITE);
+        return $this->conditionsAllow($conditions, $permissions, $obj);
     }
 
-    public function allowsMoveTo($currentStage, $nextStage, array $roles = null, $obj = null) {
-        if ($this->stageIsNext($currentStage, $nextStage) && $this->conditionsAllow($nextStage, $roles, $obj)) {
+    /**
+     * @param string $from
+     * @param string $to
+     * @param array $permissions
+     * @param null $obj
+     * @return bool
+     */
+    public function allowsMoveTo($from, $to, array $permissions = null, $obj = null) {
+        if ($this->stageIsNext($from, $to) && $this->conditionsAllow($this->getConditionsForMove($from, $to), $permissions, $obj)) {
             return true;
         } else {
             return false;
         }
     }
 
-    public function conditionsAllow($stage, array $roles = null, $obj = null) {
-        $objections = array_filter($this->getNextStageConditions($stage), function(Condition $cond) use ($roles, $obj) {
-            return !$cond->isMet($roles, $obj);
+    /**
+     * @param string $stage
+     * @param string $action
+     * @return array
+     */
+    private function getConditionsForAction($stage, $action)
+    {
+        if (!isset($this->stages[$stage])) {
+            throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $stage));
+        }
+        if (empty($this->stages[$stage][$action])) {
+            return [];
+        } else {
+            return $this->normalizeConditions($this->stages[$stage][$action]);
+        }
+    }
+
+    /**
+     * @param string $from
+     * @param string $to
+     * @return array
+     */
+    private function getConditionsForMove($from, $to)
+    {
+        if (!isset($this->stages[$from])) {
+            throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $from));
+        }
+        if (!isset($this->stages[$to])) {
+            throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $from));
+        }
+        foreach($this->stages[$from][self::CONFIG_NEXT_STAGES] as $k => $v) {
+            if (is_numeric($k)) {
+                $stage = $v;
+                $conditions = [];
+            } else {
+                $stage = $k;
+                $conditions = $this->normalizeConditions($v);
+            }
+            if ($stage === $to) {
+                return $conditions;
+            }
+        }
+
+        return [];
+    }
+
+    private function conditionsAllow(array $conditions, array $permissions = null, $obj = null) {
+        $objections = array_filter($conditions, function(Condition $cond) use ($permissions, $obj) {
+            return !$cond->isMet($permissions, $obj);
         });
 
         return empty($objections);
     }
 
-    private function getAllowedRoles($stage, $action)
+    private function normalizeConditions($conditions)
     {
-        return isset($this->stages[$stage][$action]) ? $this->stages[$stage][$action] : [];
+        if (empty($conditions)) {
+            return [];
+        } elseif (!is_array($conditions)) {
+            return [$conditions];
+        } else {
+            return $conditions;
+        }
     }
 
     private function stageIsNext($currentStage, $nextStage)
     {
         return in_array($nextStage, $this->getNextStages($currentStage));
-    }
-
-    private function getNextStageConditions($stage)
-    {
-        return isset($this->conditions[$stage]) ? $this->conditions[$stage] : [];
     }
 }
