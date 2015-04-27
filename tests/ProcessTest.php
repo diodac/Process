@@ -126,10 +126,33 @@ class ProcessTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($process->allowsMoveTo($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $author, 'periodManager' => $periodManager]), 'Author can\'t move proposal from creating to verification in voting period');
     }
 
+    /**
+     * @dataProvider getConfig
+     */
+    public function testReturnNextStages($config)
+    {
+        $process = new Process($config);
+
+        $expected = [Proposal::STAGE_VERIFICATION];
+        $this->assertTrue($this->compareArrays($process->getNextStages(Proposal::STAGE_CREATING), $expected));
+
+        $expected = [Proposal::STAGE_VOTING, Proposal::STAGE_REJECTED, Proposal::STAGE_CORRECTION];
+        $this->assertTrue($this->compareArrays($process->getNextStages(Proposal::STAGE_VERIFICATION), $expected));
+
+        $this->assertFalse($this->compareArrays($process->getNextStages(Proposal::STAGE_VOTING), $expected));
+    }
+
     public function getConfig()
     {
         return [
             [require 'config.php']
         ];
+    }
+
+    private function compareArrays(array $arr1, array $arr2)
+    {
+        asort($arr1);
+        asort($arr2);
+        return implode(',', $arr1) === implode(',', $arr2);
     }
 }
