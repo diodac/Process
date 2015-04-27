@@ -40,42 +40,39 @@ class Process
     /**
      * @param string $stage
      * @param array $params
-     * @param $obj
      * @return bool
      */
-    public function allowsRead($stage, array $params = [], $obj = null)
+    public function allowsRead($stage, array $params = [])
     {
         if (!isset($this->stages[$stage])) {
             throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $stage));
         }
         $conditions = $this->getConditionsForAccess($stage, self::ACTION_READ);
-        return $this->conditionsAllow($conditions, $params, $obj);
+        return $this->conditionsAllow($conditions, $params);
     }
 
     /**
      * @param string $stage
      * @param array $params
-     * @param $obj
      * @return bool
      */
-    public function allowsWrite($stage, array $params = [], $obj = null)
+    public function allowsWrite($stage, array $params = [])
     {
         if (!isset($this->stages[$stage])) {
             throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $stage));
         }
         $conditions = $this->getConditionsForAccess($stage, self::ACTION_WRITE);
-        return $this->conditionsAllow($conditions, $params, $obj);
+        return $this->conditionsAllow($conditions, $params);
     }
 
     /**
      * @param string $from
      * @param string $to
      * @param array $params
-     * @param null $obj
      * @return bool
      */
-    public function allowsMoveTo($from, $to, array $params = [], $obj = null) {
-        if ($this->stageIsNext($from, $to) && $this->conditionsAllow($this->getConditionsForMove($from, $to), $params, $obj)) {
+    public function allowsMoveTo($from, $to, array $params = []) {
+        if ($this->stageIsNext($from, $to) && $this->conditionsAllow($this->getConditionsForMove($from, $to), $params)) {
             return true;
         } else {
             return false;
@@ -128,10 +125,10 @@ class Process
         return [];
     }
 
-    private function conditionsAllow(array $conditions, array $params = null, $obj = null)
+    private function conditionsAllow(array $conditions, array $params = null)
     {
-        $objections = array_filter($conditions, function(Condition $cond) use ($params, $obj) {
-            return !$cond->isMet($params, $obj);
+        $objections = array_filter($conditions, function(Condition $cond) use ($params) {
+            return !$cond->isMet($params);
         });
 
         return empty($objections);

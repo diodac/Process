@@ -13,7 +13,7 @@ class HasPermission implements Condition
         $this->required = $required;
     }
 
-    public function isMet(array $params = [], $obj = null)
+    public function isMet(array $params = [])
     {
         if (empty($params['user'])) {
             return false;

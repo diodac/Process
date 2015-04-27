@@ -11,7 +11,7 @@ class InPeriod implements \Diodac\Process\Condition
         $this->required = (array)$required;
     }
 
-    function isMet(array $params = [], $obj = null)
+    function isMet(array $params = [])
     {
         if (empty($params['periodManager'])) {
             return false;
