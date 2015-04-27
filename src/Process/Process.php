@@ -21,9 +21,11 @@ class Process
 
     /**
      * @param string $current
+     * @param bool $useConditions
+     * @param array $params
      * @return array
      */
-    public function getNextStages($current)
+    public function getNextStages($current, $useConditions = false, $params = [])
     {
         if (!isset($this->stages[$current])) {
             throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $current));
@@ -31,7 +33,12 @@ class Process
         $stages = [];
         if (!empty($this->stages[$current][self::CONFIG_NEXT_STAGES])) {
             foreach ((array)$this->stages[$current][self::CONFIG_NEXT_STAGES] as $k => $v) {
-                $stages[] = is_numeric($k) ? $v : $k;
+                $stage = is_numeric($k) ? $v : $k;
+                $conditions = is_numeric($k) ? [] : $this->normalizeConditions($v);
+
+                if (!$useConditions || $useConditions && $this->conditionsAllow($conditions, $params)) {
+                    $stages[] = $stage;
+                }
             }
         }
         return $stages;

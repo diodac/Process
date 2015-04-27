@@ -10,6 +10,8 @@ use PHPUnit_Framework_TestCase;
 
 class ProcessTest extends PHPUnit_Framework_TestCase
 {
+    private $config;
+
     /**
      * @dataProvider getConfig
      */
@@ -73,14 +75,37 @@ class ProcessTest extends PHPUnit_Framework_TestCase
 
         $expected = [Proposal::STAGE_VOTING, Proposal::STAGE_REJECTED, Proposal::STAGE_CORRECTION];
         $this->assertTrue($this->compareArrays($process->getNextStages(Proposal::STAGE_VERIFICATION), $expected));
-
         $this->assertFalse($this->compareArrays($process->getNextStages(Proposal::STAGE_VOTING), $expected));
+    }
+
+    /**
+     * @dataProvider getConfig
+     */
+    public function test_next_stages_results_applying_conditions($config)
+    {
+        $process = new Process($config);
+        $periodManager = new PeriodManager([PeriodManager::PERIOD_VOTING]);
+        $author = new User([User::ROLE_APPLICANT]);
+        $official = new User([User::ROLE_OFFICIAL]);
+        $proposal = new Proposal($author, Proposal::STAGE_CREATING);
+
+        $expected = [];
+        $this->assertTrue($this->compareArrays($process->getNextStages($proposal->getStage(), true, ['user' => $author, 'periodManager' => $periodManager]), $expected));
+
+        $periodManager->changeCurrentPeriods([PeriodManager::PERIOD_PROPOSING, PeriodManager::PERIOD_VERIFICATION]);
+        $this->assertTrue($this->compareArrays($process->getNextStages($proposal->getStage(), true, ['user' => $official, 'periodManager' => $periodManager]), $expected));
+
+        $expected = [Proposal::STAGE_VERIFICATION];
+        $this->assertTrue($this->compareArrays($process->getNextStages($proposal->getStage(), true, ['user' => $author, 'periodManager' => $periodManager]), $expected));
     }
 
     public function getConfig()
     {
+        if ($this->config === null) {
+            $this->config = require 'config.php';
+        }
         return [
-            [require 'config.php']
+            [$this->config]
         ];
     }
 
