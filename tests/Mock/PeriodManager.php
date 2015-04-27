@@ -25,4 +25,9 @@ class PeriodManager
     {
         return $this->periods;
     }
+
+    public function changeCurrentPeriods($period)
+    {
+        $this->periods = (array)$period;
+    }
 }
