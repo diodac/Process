@@ -1,5 +1,6 @@
 {
     "name": "diodac/process",
+    "description": "Finite state machine variation",
     "license": "MIT",
     "authors": [
         {
@@ -7,7 +8,6 @@
             "email": "diodac@gmail.com"
         }
     ],
-    "description": "Finite state machine variation",
     "homepage": "https://github.com/diodac/Process",
     "require": {
         "php": ">=5.4.12"

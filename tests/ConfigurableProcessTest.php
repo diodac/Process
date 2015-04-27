@@ -2,13 +2,13 @@
 
 namespace Diodac\Process\Test;
 
-use Diodac\Process\Process;
+use Diodac\Process\ConfigurableProcess;
 use Diodac\Process\Test\Mock\PeriodManager;
 use Diodac\Process\Test\Mock\Proposal;
 use Diodac\Process\Test\Mock\User;
 use PHPUnit_Framework_TestCase;
 
-class ProcessTest extends PHPUnit_Framework_TestCase
+class ConfigurableProcessTest extends PHPUnit_Framework_TestCase
 {
     private $config;
 
@@ -17,7 +17,7 @@ class ProcessTest extends PHPUnit_Framework_TestCase
      */
     public function test_read_access($config)
     {
-        $process = new Process($config);
+        $process = new ConfigurableProcess($config);
         $author = new User([User::ROLE_APPLICANT]);
         $admin = new User([User::ROLE_ADMIN]);
         $official = new User([User::ROLE_OFFICIAL]);
@@ -33,7 +33,7 @@ class ProcessTest extends PHPUnit_Framework_TestCase
      */
     public function test_write_access($config)
     {
-        $process = new Process($config);
+        $process = new ConfigurableProcess($config);
         $author = new User([User::ROLE_APPLICANT]);
         $admin = new User([User::ROLE_ADMIN]);
         $official = new User([User::ROLE_OFFICIAL]);
@@ -47,35 +47,20 @@ class ProcessTest extends PHPUnit_Framework_TestCase
     /**
      * @dataProvider getConfig
      */
-    public function test_move_permission($config)
+    public function test_transit_permissions($config)
     {
-        $process = new Process($config);
+        $process = new ConfigurableProcess($config);
         $periodManager = new PeriodManager([PeriodManager::PERIOD_PROPOSING]);
         $author = new User([User::ROLE_APPLICANT]);
         $official = new User([User::ROLE_OFFICIAL]);
         $proposal = new Proposal($author, Proposal::STAGE_CREATING);
 
-        $this->assertTrue($process->allowsMoveTo($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $author, 'periodManager' => $periodManager]), 'Author can move proposal from creating to verification in proposing period');
-        $this->assertFalse($process->allowsMoveTo($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $official, 'periodManager' => $periodManager]), 'Official can\'t move proposal from creating to verification in proposing period');
+        $this->assertTrue($process->allowsTransit($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $author, 'periodManager' => $periodManager]), 'Author can move proposal from creating to verification in proposing period');
+        $this->assertFalse($process->allowsTransit($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $official, 'periodManager' => $periodManager]), 'Official can\'t move proposal from creating to verification in proposing period');
 
         $periodManager->changeCurrentPeriods([PeriodManager::PERIOD_VOTING]);
 
-        $this->assertFalse($process->allowsMoveTo($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $author, 'periodManager' => $periodManager]), 'Author can\'t move proposal from creating to verification in voting period');
-    }
-
-    /**
-     * @dataProvider getConfig
-     */
-    public function test_next_stages_result($config)
-    {
-        $process = new Process($config);
-
-        $expected = [Proposal::STAGE_VERIFICATION];
-        $this->assertTrue($this->compareArrays($process->getNextStages(Proposal::STAGE_CREATING), $expected));
-
-        $expected = [Proposal::STAGE_VOTING, Proposal::STAGE_REJECTED, Proposal::STAGE_CORRECTION];
-        $this->assertTrue($this->compareArrays($process->getNextStages(Proposal::STAGE_VERIFICATION), $expected));
-        $this->assertFalse($this->compareArrays($process->getNextStages(Proposal::STAGE_VOTING), $expected));
+        $this->assertFalse($process->allowsTransit($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $author, 'periodManager' => $periodManager]), 'Author can\'t move proposal from creating to verification in voting period');
     }
 
     /**
@@ -83,20 +68,20 @@ class ProcessTest extends PHPUnit_Framework_TestCase
      */
     public function test_next_stages_results_applying_conditions($config)
     {
-        $process = new Process($config);
+        $process = new ConfigurableProcess($config);
         $periodManager = new PeriodManager([PeriodManager::PERIOD_VOTING]);
         $author = new User([User::ROLE_APPLICANT]);
         $official = new User([User::ROLE_OFFICIAL]);
         $proposal = new Proposal($author, Proposal::STAGE_CREATING);
 
         $expected = [];
-        $this->assertTrue($this->compareArrays($process->getNextStages($proposal->getStage(), true, ['user' => $author, 'periodManager' => $periodManager]), $expected));
+        $this->assertTrue($this->compareArrays($process->getAllowedTransitions($proposal->getStage(), ['user' => $author, 'periodManager' => $periodManager]), $expected));
 
         $periodManager->changeCurrentPeriods([PeriodManager::PERIOD_PROPOSING, PeriodManager::PERIOD_VERIFICATION]);
-        $this->assertTrue($this->compareArrays($process->getNextStages($proposal->getStage(), true, ['user' => $official, 'periodManager' => $periodManager]), $expected));
+        $this->assertTrue($this->compareArrays($process->getAllowedTransitions($proposal->getStage(), ['user' => $official, 'periodManager' => $periodManager]), $expected));
 
         $expected = [Proposal::STAGE_VERIFICATION];
-        $this->assertTrue($this->compareArrays($process->getNextStages($proposal->getStage(), true, ['user' => $author, 'periodManager' => $periodManager]), $expected));
+        $this->assertTrue($this->compareArrays($process->getAllowedTransitions($proposal->getStage(), ['user' => $author, 'periodManager' => $periodManager]), $expected));
     }
 
     public function getConfig()
