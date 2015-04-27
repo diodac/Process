@@ -48,7 +48,7 @@ class Process
         if (!isset($this->stages[$stage])) {
             throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $stage));
         }
-        $conditions = $this->getConditionsForAction($stage, self::ACTION_READ);
+        $conditions = $this->getConditionsForAccess($stage, self::ACTION_READ);
         return $this->conditionsAllow($conditions, $params, $obj);
     }
 
@@ -63,7 +63,7 @@ class Process
         if (!isset($this->stages[$stage])) {
             throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $stage));
         }
-        $conditions = $this->getConditionsForAction($stage, self::ACTION_WRITE);
+        $conditions = $this->getConditionsForAccess($stage, self::ACTION_WRITE);
         return $this->conditionsAllow($conditions, $params, $obj);
     }
 
@@ -84,18 +84,18 @@ class Process
 
     /**
      * @param string $stage
-     * @param string $action
+     * @param string $access
      * @return array
      */
-    private function getConditionsForAction($stage, $action)
+    private function getConditionsForAccess($stage, $access)
     {
         if (!isset($this->stages[$stage])) {
             throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $stage));
         }
-        if (empty($this->stages[$stage][$action])) {
+        if (empty($this->stages[$stage][$access])) {
             return [];
         } else {
-            return $this->normalizeConditions($this->stages[$stage][$action]);
+            return $this->normalizeConditions($this->stages[$stage][$access]);
         }
     }
 
@@ -128,7 +128,8 @@ class Process
         return [];
     }
 
-    private function conditionsAllow(array $conditions, array $params = null, $obj = null) {
+    private function conditionsAllow(array $conditions, array $params = null, $obj = null)
+    {
         $objections = array_filter($conditions, function(Condition $cond) use ($params, $obj) {
             return !$cond->isMet($params, $obj);
         });
