@@ -7,7 +7,7 @@
             "email": "diodac@gmail.com"
         }
     ],
-    "homepage": "http://github.com/SimpleBus/MessageBus",
+    "homepage": "https://github.com/diodac/Process",
     "require": {
         "php": ">=5.4.12"
     },
