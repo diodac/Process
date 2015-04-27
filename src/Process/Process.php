@@ -114,7 +114,7 @@ class Process
             throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $from));
         }
         if (!isset($this->stages[$to])) {
-            throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $from));
+            throw new \InvalidArgumentException(sprintf('This stage (%s) was not configured', $to));
         }
         foreach($this->stages[$from][self::CONFIG_NEXT_STAGES] as $k => $v) {
             if (is_numeric($k)) {
