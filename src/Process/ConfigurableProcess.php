@@ -77,7 +77,7 @@ class ConfigurableProcess implements Process
      * @param array $params
      * @return bool
      */
-    public function allowsTransit($from, $to, array $params = [])
+    public function allowsTransition($from, $to, array $params = [])
     {
         if ($this->transitionIsConfigured($from, $to) && $this->conditionsAllow($this->getConditionsForTransition($from, $to), $params)) {
             return true;

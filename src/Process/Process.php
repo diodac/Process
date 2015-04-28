@@ -13,6 +13,6 @@ interface Process
 {
     function allowsRead($stage, array $params = []);
     function allowsWrite($stage, array $params = []);
-    function allowsTransit($from, $to, array $params = []);
+    function allowsTransition($from, $to, array $params = []);
     function getAllowedTransitions($current, array $params = []);
 }

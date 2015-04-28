@@ -30,9 +30,9 @@ class HandleStageObjects implements Process
         return $this->process->allowsWrite((string)$stage, $params);
     }
 
-    public function allowsTransit($from, $to, array $params = [])
+    public function allowsTransition($from, $to, array $params = [])
     {
-        return $this->process->allowsTransit((string)$from, (string)$to, $params);
+        return $this->process->allowsTransition((string)$from, (string)$to, $params);
     }
 
     public function getAllowedTransitions($current, array $params = [])

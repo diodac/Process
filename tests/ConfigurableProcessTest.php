@@ -55,12 +55,12 @@ class ConfigurableProcessTest extends PHPUnit_Framework_TestCase
         $official = new User([User::ROLE_OFFICIAL]);
         $proposal = new Proposal($author, Proposal::STAGE_CREATING);
 
-        $this->assertTrue($process->allowsTransit($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $author, 'periodManager' => $periodManager]), 'Author can move proposal from creating to verification in proposing period');
-        $this->assertFalse($process->allowsTransit($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $official, 'periodManager' => $periodManager]), 'Official can\'t move proposal from creating to verification in proposing period');
+        $this->assertTrue($process->allowsTransition($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $author, 'periodManager' => $periodManager]), 'Author can move proposal from creating to verification in proposing period');
+        $this->assertFalse($process->allowsTransition($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $official, 'periodManager' => $periodManager]), 'Official can\'t move proposal from creating to verification in proposing period');
 
         $periodManager->changeCurrentPeriods([PeriodManager::PERIOD_VOTING]);
 
-        $this->assertFalse($process->allowsTransit($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $author, 'periodManager' => $periodManager]), 'Author can\'t move proposal from creating to verification in voting period');
+        $this->assertFalse($process->allowsTransition($proposal->getStage(), Proposal::STAGE_VERIFICATION, ['user' => $author, 'periodManager' => $periodManager]), 'Author can\'t move proposal from creating to verification in voting period');
     }
 
     /**
