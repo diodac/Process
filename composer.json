@@ -1,5 +1,6 @@
 {
     "name": "diodac/process",
+    "description": "Finite state machine variation",
     "license": "MIT",
     "authors": [
         {

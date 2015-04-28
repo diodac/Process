@@ -12,6 +12,7 @@ namespace Diodac\Process\Test\Mock;
 class PeriodManager
 {
     const PERIOD_PROPOSING = 'PERIOD_PROPOSING';
+    const PERIOD_VERIFICATION = 'PERIOD_VERIFICATION';
     const PERIOD_VOTING = 'PERIOD_VOTING';
 
     private $periods;
